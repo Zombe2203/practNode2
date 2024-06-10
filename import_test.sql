@@ -1,63 +1,144 @@
 -- Creation of a test base...
 
-CREATE DATABASE bank;
+CREATE DATABASE lookout;
 
-CREATE TABLE individuals (
+CREATE TABLE sectors (
   id INT NOT NULL AUTO_INCREMENT,
-  first_name VARCHAR(30) NOT NULL,
-  last_name VARCHAR(30) NOT NULL,
-  middle_name VARCHAR(30),
-  passport VARCHAR(10) NOT NULL,
-  taxpayer_number VARCHAR(12) NOT NULL,
-  insurance_number VARCHAR(11) NOT NULL,
-  driver_licence VARCHAR(10),
-  extra_documents VARCHAR(255),
+  coordinates VARCHAR(20) NOT NULL,
+  luminous INT NOT NULL,
+  obstacles VARCHAR(255),
+  objects_number INT NOT NULL,
+  unidentified_objects INT NOT NULL,
+  identified_objects INT NOT NULL,
+  observ_date TIMESTAMP NOT NULL,
   notes VARCHAR(255),
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=cp1251;
 
-INSERT INTO individuals (first_name, last_name, middle_name, passport, taxpayer_number, insurance_number, driver_licence, extra_documents, notes) VALUES
-('Ivan', 'Ivanov', 'Ivanovich', '1234567890', '123456789012', '12345678901', null, null, null),
-('Petr', 'Petrov', 'Petrovich', '2345678901', '234567890123', '23456789012', null, null, null),
-('Oleg', 'Olegov', 'Olegovich', '3456789012', '345678901234', '34567890123', null, null, null),
-('Roman', 'Romanov', 'Romanovich', '4567890123', '456789012345', '45678901234', null, null, null),
-('Stepan', 'Stepanov', 'Stepanovich', '5678901234', '567890123456', '56789012345', null, null, null);
+INSERT INTO sectors (coordinates, luminous, obstacles,objects_number, unidentified_objects, identified_objects, observ_date, notes) VALUES
+('234:567', 120000, 1, 5, 3, 2, '2024-01-01 12:00:00', null);
 
-CREATE TABLE borrowers (
-  borrower_id INT NOT NULL AUTO_INCREMENT,
-  taxpayer_number VARCHAR(12) NOT NULL,
-  is_legal_entity BIT NOT NULL,
-  address VARCHAR(255) NOT NULL,
-  amount INT NOT NULL,
-  conditions VARCHAR(255) NOT NULL,
-  legal_notes VARCHAR(255),
-  contracts_list VARCHAR(255),
-  PRIMARY KEY (borrower_id)
-) ENGINE=InnoDB DEFAULT CHARSET=cp1251;
-
-CREATE TABLE loans (
+CREATE TABLE objects (
   id INT NOT NULL AUTO_INCREMENT,
-  individual_id INT NOT NULL,
-  amount INT NOT NULL,
-  interest DEC(5,2) NOT NULL,
-  term TIMESTAMP NOT NULL,
-  conditions VARCHAR(255) NOT NULL,
-  notes VARCHAR(255) NOT NULL,
-  borrower_id INT NOT NULL,
-  PRIMARY KEY (id),
-  FOREIGN KEY (individual_id) REFERENCES individuals(id),
-  FOREIGN KEY (borrower_id) REFERENCES borrowers(borrower_id)
-) ENGINE=InnoDB DEFAULT CHARSET=cp1251;
-
-CREATE TABLE companies_loans (
-  id INT NOT NULL AUTO_INCREMENT,
-  company_id INT NOT NULL,
-  individual_id INT NOT NULL,
-  amount INT NOT NULL,
-  term TIMESTAMP NOT NULL,
-  interest DEC(5,2) NOT NULL,
-  conditions VARCHAR(255) NOT NULL,
+  object_type VARCHAR(45),
+  accuracy DEC(5,4) NOT NULL,
+  quantity INT NOT NULL,
+  observ_time TIME NOT NULL,
+  observ_date TIMESTAMP NOT NULL,
   notes VARCHAR(255),
-  PRIMARY KEY (id),
-  FOREIGN KEY (individual_id) REFERENCES individuals(id)
+  PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=cp1251;
+
+CREATE TABLE natural_objects (
+  id INT NOT NULL AUTO_INCREMENT,
+  object_type VARCHAR(45),
+  galaxy VARCHAR(45),
+  accuracy DEC(5,4) NOT NULL,
+  luminous INT NOT NULL,
+  conjugated_objects VARCHAR(255),
+  notes VARCHAR(255),
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=cp1251;
+
+CREATE TABLE positions (
+  id INT NOT NULL AUTO_INCREMENT,
+  earth_pos VARCHAR(60),
+  sol_pos VARCHAR(60),
+  moon_pos VARCHAR(60),
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=cp1251;
+
+INSERT INTO positions (earth_pos, sol_pos, moon_pos) VALUES
+("123`456", "234`561", "345`612");
+
+CREATE TABLE connections (
+  id INT NOT NULL AUTO_INCREMENT,
+  id_sectors INT,
+  id_objects INT,
+  id_natural_objects INT,
+  id_positions INT,
+  PRIMARY KEY (id),
+  FOREIGN KEY (id_sectors) REFERENCES sectors(id),
+  FOREIGN KEY (id_objects) REFERENCES objects(id),
+  FOREIGN KEY (id_natural_objects) REFERENCES natural_objects(id),
+  FOREIGN KEY (id_positions) REFERENCES positions(id)
+) ENGINE=InnoDB DEFAULT CHARSET=cp1251;
+
+INSERT INTO connections (id_sectors, id_objects, id_natural_objects, id_positions) VALUES
+(1, null, null, 1);
+
+
+DELIMITER //
+
+CREATE PROCEDURE proc1 (table1 VARCHAR(255), table2 VARCHAR(255))
+BEGIN
+    IF table1 = "Sectors" THEN
+        IF table2 = "Objects" THEN
+            SELECT s.*, o.* FROM sectors s
+            INNER JOIN connections c ON s.id = c.id_sectors
+            INNER JOIN objects o ON c.id_objects = o.id;
+        END IF;
+        IF table2 = "Positions" THEN
+            SELECT s.*, p.* FROM sectors s
+            INNER JOIN connections c ON s.id = c.id_sectors
+            INNER JOIN positions p ON c.id_positions = p.id;
+        END IF;
+        IF table2 = "Natural_objects" THEN
+            SELECT s.*, n.* FROM sectors s
+            INNER JOIN connections c ON s.id = c.id_sectors
+            INNER JOIN natural_objects n ON c.id_natural_objects = n.id;
+        END IF;
+     END IF;
+     IF table1 = "Objects" THEN
+        IF table2 = "Sectors" THEN
+            SELECT o.*, s.* FROM objects o
+            INNER JOIN c ON o.id = c.id_objects
+            INNER JOIN sectors s ON c.id_sectors = s.id;
+        END IF;
+        IF table2 = "Positions" THEN
+            SELECT o.*, p.* FROM objects o
+            INNER JOIN connections c ON o.id = c.id_objects
+            INNER JOIN positions p ON c.id_positions = p.id;
+        END IF;
+        IF table2 = "Natural_objects" THEN
+            SELECT o.*, n.* FROM objects o
+            INNER JOIN connections c ON o.id = c.id_objects
+            INNER JOIN natural_objects n ON c.id_natural_objects = n.id;
+        END IF;
+      END IF;
+      IF table1 = "Positions" THEN
+        IF table2 = "Sectors" THEN
+            SELECT p.*, s.* FROM positions p
+            INNER JOIN connections c ON p.id = c.id_positions
+            INNER JOIN sectors s ON c.id_sectors = s.id;
+        END IF;
+        IF table2 = "Objects" THEN
+            SELECT p.*, o.* FROM positions p
+            INNER JOIN connections c ON p.id = c.id_positions
+            INNER JOIN objects o ON c.id_objects = o.id;
+        END IF;
+        IF table2 = "Natural_objects" THEN
+            SELECT p.*, n.* FROM positions p
+            INNER JOIN connections c ON p.id = c.id_positions
+            INNER JOIN natural_objects n ON c.id_natural_objects = n.id;
+        END IF;
+      END IF;
+      IF table1 = "Natural_objects" THEN
+        IF table2 = "Sectors" THEN
+            SELECT n.*, s.* FROM natural_objects n
+            INNER JOIN connections c ON n.id = c.id_natural_objects
+            INNER JOIN sectors s ON c.id_sectors = s.id;
+        END IF;
+        IF table2 = "Objects" THEN
+            SELECT n.*, o.* FROM natural_objects n
+            INNER JOIN connections c ON n.id = c.id_natural_objects
+            INNER JOIN objects o ON c.id_objects = o.id;
+        END IF;
+        IF table2 = "Positions" THEN
+            SELECT n.*, p.* FROM natural_objects n
+            INNER JOIN connections c ON n.id = c.id_natural_objects
+            INNER JOIN positions p ON c.id_positions = p.id;
+        END IF;
+      END IF;
+END //
+DELIMITER ;

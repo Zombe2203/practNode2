@@ -8,7 +8,7 @@ const connection = new Mysql({
     port:'8080',
     user:'root', 
     password:'12345', 
-    database:'bank'
+    database:'lookout'
 })
 
 // обработка параметров из формы.
@@ -23,7 +23,7 @@ function reqPost (request, response) {
 
         request.on('end', function () {
 			var post = qs.parse(body);
-			var sInsert = "INSERT INTO individuals (first_name, last_name, middle_name, passport, taxpayer_number, insurance_number, driver_licence, extra_documents, notes) VALUES (\""+post['col1']+"\",\""+post['col2']+"\",\""+post['col3']+"\",\""+post['col4']+"\",\""+post['col5']+"\",\""+post['col6']+"\",\""+post['col7']+"\",\""+post['col8']+"\",\""+post['col9']+"\")";
+			var sInsert = "INSERT INTO sectors (coordinates, luminous, obstacles, objects_number, unidentified_objects, identified_objects, observ_date, notes) VALUES (\""+post['col1']+"\",\""+post['col2']+"\",\""+post['col3']+"\",\""+post['col4']+"\",\""+post['col5']+"\",\""+post['col6']+"\",\""+post['col7']+"\",\""+post['col8']+"\")";
 			var results = connection.query(sInsert);
             console.log('Done. Hint: '+sInsert);
         });
@@ -32,24 +32,31 @@ function reqPost (request, response) {
 
 // выгрузка массива данных.
 function ViewSelect(res) {
-	var results = connection.query('SHOW COLUMNS FROM individuals');
+	var results = connection.query('SHOW COLUMNS FROM sectors;');
+	var results1 = connection.query('SHOW COLUMNS FROM positions;');
 	res.write('<tr>');
+
 	for(let i=0; i < results.length; i++)
 		res.write('<td>'+results[i].Field+'</td>');
+	for(let i=0; i < results1.length; i++)
+		res.write('<td>'+results1[i].Field+'</td>');
 	res.write('</tr>');
 
-	var results = connection.query('SELECT * FROM individuals ORDER BY id DESC');
-	for(let i=0; i < results.length; i++)
-		res.write('<tr><td>'+results[i].id+
-		      '</td><td>'+results[i].first_name+
-			  '</td><td>'+results[i].last_name+
-			  '</td><td>'+results[i].middle_name+
-			  '</td><td>'+String(results[i].passport)+
-			  '</td><td>'+String(results[i].taxpayer_number)+
-			  '</td><td>'+String(results[i].insurance_number)+
-			  '</td><td>'+String(results[i].driver_licence)+
-			  '</td><td>'+results[i].extra_documents+
-			  '</td><td>'+results[i].notes+
+	var results = connection.query('CALL proc1("Sectors", "Positions");');
+	for(let i=0; i < results.length-1; i++)
+		res.write('<tr><td>'+results[i][0].id+
+		      '</td><td>'+results[i][0].coordinates+
+			  '</td><td>'+results[i][0].luminous+
+			  '</td><td>'+results[i][0].obstacles+
+			  '</td><td>'+results[i][0].objects_number+
+			  '</td><td>'+results[i][0].unidentified_objects+
+			  '</td><td>'+results[i][0].identified_objects+
+			  '</td><td>'+String(results[i][0].observ_date)+
+			  '</td><td>'+results[i][0].notes+
+			  '</td><td>'+results[i][0].id+
+			  '</td><td>'+results[i][0].earth_pos+
+			  '</td><td>'+results[i][0].sol_pos+
+			  '</td><td>'+results[i][0].moon_pos+
 			  '</td></tr>');
 }
 function ViewVer(res) {

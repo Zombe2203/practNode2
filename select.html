@@ -41,6 +41,7 @@ td {
     position: relative;
     border: 1px solid #333;
     height: 20px;
+    word-break: break-all;
 }
 td:first-child {
 	width: 35px;
@@ -78,14 +79,13 @@ input[type="text"] {
     <body>
         <h1><a href=".">Как можно работать с таблицами в MySQL на Node.js</a></h1>
         <form action="." method="post">
-            <label>Имя</label><input type="text" name="first_name" placeholder="..." />
-            <label>Фамилия</label><input type="text" name="last_name" placeholder="..." />
-            <label>Отчество</label><input type="text" name="middle_name" placeholder="..." />
-	    <label>Паспорт</label><input type="text" name="passport" placeholder="..." />
-	    <label>ИНН</label><input type="text" name="taxpayer_number" placeholder="..." />
-	    <label>СНИЛС</label><input type="text" name="insurance_number" placeholder="..." />
-	    <label>Вод.права</label><input type="text" name="driver_licence" placeholder="..." />
-	    <label>Доп.документы</label><input type="text" name="extra_documents" placeholder="..." />
+            <label>Координаты</label><input type="text" name="coordinates" placeholder="..." />
+            <label>Свет.Интенс.</label><input type="text" name="luminous" placeholder="..." />
+            <label>Пост.Объекты</label><input type="text" name="obstacles" placeholder="..." />
+	    <label>Кол-во Об.З.Н.</label><input type="text" name="objects_number" placeholder="..." />
+	    <label>Кол-во Н.Об.</label><input type="text" name="unidentified_objects" placeholder="..." />
+	    <label>Кол-во У.Об.</label><input type="text" name="identified_objects" placeholder="..." />
+	    <label>Дата набл.</label><input type="text" name="observ_date" placeholder="..." />
 	    <label>Примечание</label><input type="text" name="notes" placeholder="..." />
             <input type="submit" value="Добавить" />
         </form>
